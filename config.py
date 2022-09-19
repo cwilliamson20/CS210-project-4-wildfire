@@ -22,3 +22,7 @@ BASEMAP_HEIGHT_UTM =  BASEMAP_EXTENT_NORTHING - BASEMAP_ORIGIN_NORTHING
 
 # How many clusters should we try to make?
 N_CLUSTERS = 10
+
+# How long will we allow the algorithm to run?
+# (It will usually end much sooner)
+MAX_ITERATIONS = 30

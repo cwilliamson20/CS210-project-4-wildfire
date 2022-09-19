@@ -468,6 +468,15 @@ each by `len(points)` to get the mean.  You may note that this is
 another instance of the _accumulator pattern_ that we saw in the 
 course enrollment analysis. 
 
+There is one catch:  What is the centroid of an empty list of points?
+At first this is unlikely to occur, but later as we shuffle points 
+among clusters, it is common for some of them to become empty.  
+We'll have to treat this as a special case.  The approach I used was 
+to return the value (0, 0) as the imaginary centroid of an empty 
+list of points.  The location (0, 0) is outside the bounds of our 
+basemap, so placing empty clusters at (0, 0) has the effect of 
+hiding them. 
+
 To keep our main function short, we can write a very simple function 
 for computing the centroids of all the clusters: 
 
@@ -533,14 +542,225 @@ $$\sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}$$.
 However, we don't really 
 need to know the distance between points.  We just need any 
 _monotone function_ of distance.  A function _f_ is _monotone_ if 
-$$ x \gt y \rightarrow f(x) \gt f(y) $$.  The square of distance, 
+$$ x \gt y \rightarrow f(x) \gt f(y) $$.
+The square of distance, 
 which we get if we just skip taking the square root of
-$$(x_2 - x_1)^2 + (y_2 - y_1)^2$$, is a monotone function of 
+$$(x_2 - x_1)^2 + (y_2 - y_1)^2$$
+is a monotone function of 
 distance:  The greater the distance, the greater the square of 
 distance.  So instead of finding the cluster with the smallest 
 distance from a point, we can find the cluster with the smallest 
 squared distance from a point.  This has the added advantage of 
 working well with integers.  
+
+I'll provide the function for finding the square of distance between 
+two points: 
+
+```python
+def sq_dist(p1: tuple[int, int], p2: tuple[int, int]) -> int:
+    """Square of Euclidean distance between p1 and p2
+
+    >>> sq_dist([2, 3], [3, 5])
+    5
+    """
+    x1, y1 = p1
+    x2, y2 = p2
+    dx = x2 - x1
+    dy = y2 - y1
+    return dx*dx + dy*dy
+```
+
+With that, you can create a function to determine which of a set of 
+points is closest to another point.  Note that the result of this 
+function should not be the point, but rather the index in the list 
+where that point appears: 
+
+```python
+def closest_index(point: tuple[int, int], centroids: list[tuple[int, int]]) -> int:
+    """Returns the index of the centroid closest to point
+
+    >>> closest_index((5, 5), [(3, 2), (4, 5), (7, 1)])
+    1
+    """
+```
+
+You can visualize the test case this way: 
+
+![Choosing the index of the closest centroid](img/closest-index.png)
+
+### Partition the points
+
+We have already seen a function that makes random assignments of 
+points to clusters.  Now you need a function that instead makes a 
+_good_ assignment, assigning each point to the cluster with the 
+closest centroid.   Here is the header for that function: 
+
+```python
+def assign_closest(points: list[tuple[int,int]],
+                   centroids: list[tuple[int, int]]
+                   ) -> list[list[int, int]]:
+    """Returns a list of lists.  The i'th list contains the points
+    assigned to the i'th centroid.  Each point is assigned to the
+    centroid it is closest to.
+
+    >>> assign_closest([(1, 1), (2, 2), (5, 5)], [(4, 4), (2, 2)])
+    [[(5, 5)], [(1, 1), (2, 2)]]
+    """
+```
+
+Let's visualize what this function does with the test case. 
+
+![Partitioning points by closest centroid](img/partition.png)
+
+`assign_closest` inspects the first point, (1,1), and
+uses `closest_index` to determine that (1,1) is closest to (2,2), 
+which is at index 1.  It adds (1,1) to the list of assignments at 
+index 1.  It similarly inspects point (2,2) and again finds that it 
+fits best in the cluster at index 1.  It inspects point (5,5) and 
+finds that (5,5) is closer to (4,4) and therefore goes in the 
+assignment at index 0.  It returns the list of assignments, which is 
+now [[(5,5)], [(1,1), (2,2)]], i.e., (5,5) assigned to the first 
+cluster and (1,1) and (2,2) both assigned to the second. 
+
+To write this function, start with a copy of `assign_random`, then 
+change the random choice to selection by closest centroid.  Instead 
+of `n` clusters, you can find the number of clusters as
+`len(centroids)`. 
+
+To see our progress, we'll add a function that moves each of symbols 
+representing clusters to their new centroids: 
+
+```python
+def move_points(fire_map: graphics.utm_plot.Map,
+                points:  list[tuple[int, int]], 
+                symbols: list): 
+    """Move a set of symbols to new points"""
+    for i in range(len(points)):
+        fire_map.move_point(symbols[i], points[i])
+```
+
+I'd also like to see how the fires are grouped at the end, so I'll 
+write one more function to display connections at the conclusion: 
+
+
+```python
+def show_clusters(fire_map: graphics.utm_plot.Map, 
+                  centroid_symbols: list, 
+                  assignments: list[list[tuple[int, int]]]):
+    """Connect each centroid to all the points in its cluster"""
+    for i in range(len(centroid_symbols)):
+        fire_map.connect_all(centroid_symbols[i], assignments[i])
+```
+
+We can test how it does after one reassignment of points to clusters: 
+
+```python
+def main():
+    doctest.testmod()
+    fire_map = make_map()
+    points = get_fires_utm(config.FIRE_DATA_PATH)
+    fire_symbols = plot_points(fire_map, points, color="red")
+
+    # Initial random assignment
+    partition = assign_random(points, config.N_CLUSTERS)
+    centroids = cluster_centroids(partition)
+    centroid_symbols = plot_points(fire_map, centroids, size_px=10, color="blue")
+
+    # Improved assignment
+    partition = assign_closest(points, centroids)
+    centroids = cluster_centroids(partition)
+    move_points(fire_map, centroids, centroid_symbols)
+    
+    # Show connections at end
+    show_clusters(fire_map, centroid_symbols, partition)
+
+    input("Press enter to quit")
+```
+
+You are likely to see that the cluster centroids are already 
+starting to spread out toward true clusters. 
+
+![After one reassignment](img/second-cluster.png)
+
+
+## Iterate to a solution
+
+Now we have a way to make a bad guess, and a way to make a guess 
+better (by reassigning points to clusters).  If we put those two 
+steps in a loop, plotting their current positions after each round 
+of assigning points and recalculating centroids, we will see them 
+move toward the centers of natural clusters of points.  Some will 
+become empty and move off the screen; I typically get seven or eight 
+clusters. 
+
+How can we know when to stop? We can set an arbitrary bound (e.g., 
+twenty iterations), but usually we will converge on a stable 
+solution long before a safe bound.  If the assignment of points to 
+clusters does not change from one iteration of the loop to the next, 
+it will remain fixed at that assignment.  The final version of our 
+main function can therefore look like this: 
+
+```python
+def main():
+    doctest.testmod()
+    fire_map = make_map()
+    points = get_fires_utm(config.FIRE_DATA_PATH)
+    fire_symbols = plot_points(fire_map, points, color="red")
+
+    # Initial random assignment
+    partition = assign_random(points, config.N_CLUSTERS)
+    centroids = cluster_centroids(partition)
+    centroid_symbols = plot_points(fire_map, centroids, size_px=10, color="blue")
+
+    # Continue improving assignment until assignment doesn't change
+    for i in range(config.MAX_ITERATIONS):
+        old_partition = partition
+        partition = assign_closest(points, centroids)
+        if partition == old_partition:
+            # No change ... this is "convergence"
+            break
+        centroids = cluster_centroids(partition)
+        move_points(fire_map, centroids, centroid_symbols)
+
+    # Show connections at end
+    show_clusters(fire_map, centroid_symbols, partition)
+
+    input("Press enter to quit")
+```
+
+You may see a result something like this: 
+
+![Final iterated solution](img/iterated-solution.png)
+
+It will not always be the same.  The naive k-means clustering 
+algorithm will converge to different solutions depending on the 
+initial random assignment.  It is common to run it multiple times 
+and take the "best" solution, for some definition of "best".  
+
+## Challenge yourself
+
+There are many variations on naive k-means.  For example, when one 
+of the clusters becomes empty, you might consider "stealing" half 
+the points from a cluster with more than its share, thereby 
+subdividing the largest clusters.  There are many good sources 
+online describing both small variations and completely different 
+approaches to clustering. 
+
+You might also experiment with selecting the data.  We have been 
+treating all wildfires as equivalent, regardless of size.  We see a 
+very large number of wildfire records around the Portland 
+metropolitan area, but some of them are very small.  Could it be 
+that a small fire near a major metropolitan area is more likely to 
+be observed and recorded than a small fire in a more rural area?  
+Would you get different clusters if you used only records of larger 
+fires (e.g., using the `DailyAcres` column to select first of at 
+least 10 acres)?  
+
+
+
+
+
+
 
 
 

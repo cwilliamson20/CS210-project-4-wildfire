@@ -72,14 +72,13 @@ class Map:
         symbol.draw(self.window)
         return symbol
 
-    def move_point(self, symbol: graphics.Circle, new_pos: tuple[float, float]):
+    def move_point(self, symbol: graphics.Circle, new_pos: tuple[int, int]):
         """Move point to new easting, northing"""
         easting, northing = new_pos
         pixel_x, pixel_y = self.pixel_coordinates(easting, northing)
         old_center = symbol.getCenter()
         old_x, old_y = old_center.x, old_center.y
         symbol.move(pixel_x - old_x, pixel_y - old_y)
-        # symbol.draw(self.window)
 
     def connect_all(self,
              symbol: graphics.Circle,
