@@ -7,7 +7,7 @@ import graphics.graphics as graphics
 import logging
 logging.basicConfig()
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
 
 PT_MARK_SIZE = 3  # pixels
 
