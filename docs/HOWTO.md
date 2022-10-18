@@ -541,8 +541,9 @@ distance between $(x_1, y_1)$ and $(x_2, y_2)$ is
 $$\sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}$$.
 However, we don't really 
 need to know the distance between points.  We just need any 
-_monotone function_ of distance.  A function _f_ is _monotone_ if 
-$$ x \gt y \rightarrow f(x) \gt f(y) $$.
+_monotone function_ of distance.  A function _f_ is _monotone_ if
+$ x \gt y \rightarrow f(x) \gt f(y) $
+
 The square of distance, 
 which we get if we just skip taking the square root of
 $$(x_2 - x_1)^2 + (y_2 - y_1)^2$$
