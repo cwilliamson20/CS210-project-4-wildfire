@@ -344,7 +344,22 @@ north, and south boundaries, which should give a display that looks
 like this: 
 
 ![A map of test data](img/map-test.png)
-
+<span style="color:blue">
+### **Section Checklist:**
+When you reach this point, you should have completed the following:
+- A basic program skeleton, with a main function and the ability to run doctests
+- Import all the modules you'll need later on (hint: there should be 4 total)
+- Create the basemap image and display it using the `make_map()` function
+    - Include the ability to display it until the user presses enter in you `main` function
+- make the `get_fires_utm` function
+     - What is the goal of this function?
+     - Use a DictReader to read the data from a csv file
+     - Store this data as numbers (not strings!) inside a list as pairs of coordinates. You'll need these coordinates to map the points later.
+     - Make the `in_bounds` function, which checks if a pair of coordinates is within the bounds of your map image.
+     - Make sure that your function only stores points that fit inside the bounds of the mapped area 
+- Create the function `plot_points`, which will plot the pairs you created in `get_fires_utm` onto your basemap.
+- Use the `get_fires_utm` and `plot_points` functions in `main` to display your coordinates as red dots placed in their location on the map of Oregon. 
+</span>
 ## Parallel lists
 
 Now that we have our dataset and are able to plot it, it is time to 
