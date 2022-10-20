@@ -344,7 +344,7 @@ north, and south boundaries, which should give a display that looks
 like this: 
 
 ![A map of test data](img/map-test.png)
-<span style="color:blue">
+
 ### **Section Checklist:**
 When you reach this point, you should have completed the following:
 - A basic program skeleton, with a main function and the ability to run doctests
@@ -359,7 +359,8 @@ When you reach this point, you should have completed the following:
      - Make sure that your function only stores points that fit inside the bounds of the mapped area 
 - Create the function `plot_points`, which will plot the pairs you created in `get_fires_utm` onto your basemap.
 - Use the `get_fires_utm` and `plot_points` functions in `main` to display your coordinates as red dots placed in their location on the map of Oregon. 
-</span>
+
+
 ## Parallel lists
 
 Now that we have our dataset and are able to plot it, it is time to 
