@@ -459,6 +459,11 @@ cannot think of a way to write a test case for it.  Shortly, though,
 we can create a graphical display to at least give us an idea of 
 whether it looks like a random assignment. 
 
+### **Section Checklist:**
+- add `import random` to your import statements in order to use the random module
+- Create the function`assign_random`, which takes a list of coordinate pairs and groups them *n* into random clusters where each cluster is a list of the coordinate pairs that belong to it
+- Use `assign_random` in `main` to make an intial random assignment of your coordinate pairs from `get_first_utm` into clusters
+
 ## Centroids
 
 We will use a very simple definition of the centroid of a set of 
